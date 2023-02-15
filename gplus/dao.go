@@ -46,6 +46,10 @@ func (dao Dao[T]) NewQuery() (*Query[T], *T) {
 	return q, q.buildColumnNameMap()
 }
 
+func (dao Dao[T]) Db() *gorm.DB {
+	return globalDb
+}
+
 func NewPage[T any](current, size int) *Page[T] {
 	return &Page[T]{Current: current, Size: size}
 }
