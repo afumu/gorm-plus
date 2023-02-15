@@ -41,12 +41,12 @@ type Page[T any] struct {
 
 type Dao[T any] struct{}
 
-func (dao Dao[T]) NewQuery() (*Query[T], *T) {
+func (dao *Dao[T]) NewQuery() (*Query[T], *T) {
 	q := &Query[T]{}
 	return q, q.buildColumnNameMap()
 }
 
-func (dao Dao[T]) Db() *gorm.DB {
+func (dao *Dao[T]) Db() *gorm.DB {
 	return globalDb
 }
 
