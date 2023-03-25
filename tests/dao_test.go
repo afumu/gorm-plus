@@ -436,3 +436,38 @@ func TestSelectCount(t *testing.T) {
 		t.Errorf("count expects: %v, got %v", 2, count)
 	}
 }
+
+func TestDeleteByMap(t *testing.T) {
+	user1 := &User{Username: "delete-user1", Password: "123456", Age: 18, Score: 12, Dept: "财务部门"}
+	user2 := &User{Username: "delete-user2", Password: "123456", Age: 16, Score: 34, Dept: "行政部门"}
+	user3 := &User{Username: "delete-user3", Password: "123456", Age: 26, Score: 33, Dept: "研发部门"}
+	user4 := &User{Username: "delete-user4", Password: "123456", Age: 26, Score: 33, Dept: "研发部门"}
+	user5 := &User{Username: "delete-user5", Password: "123456", Age: 26, Score: 33, Dept: "研发部门"}
+	users := []*User{user1, user2, user3, user4, user5}
+
+	if err := gplus.InsertBatch[User](users).Error; err != nil {
+		t.Errorf("errors happened when insertBatch: %v", err)
+	}
+
+	for _, user := range users {
+		if user.ID == 0 {
+			t.Fatalf("user's primary key should has value after insert, got : %v", user.ID)
+		}
+	}
+
+	deleteMap := map[any]interface{}{
+		"username": "delete-user1",
+		"age":      18,
+	}
+
+	query, _ := gplus.NewQueryMap[User]()
+	query.ConditionMap = deleteMap
+	if res := gplus.DeleteByMap[User](query); res.Error != nil || res.RowsAffected != 1 {
+		t.Errorf("errors happened when deleteByMap: %v, affected: %v", res.Error, res.RowsAffected)
+	}
+
+	var result1 User
+	if err := gormDb.Where("id = ?", user1.ID).First(&result1).Error; err == nil || !errors.Is(err, gorm.ErrRecordNotFound) {
+		t.Errorf("should returns record not found error, but got %v", err)
+	}
+}
